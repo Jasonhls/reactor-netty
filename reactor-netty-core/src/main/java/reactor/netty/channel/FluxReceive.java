@@ -276,6 +276,9 @@ final class FluxReceive extends Flux<Object> implements Subscription, Disposable
 									" will handle the message from this point"));
 						}
 					}
+					/**
+					 * 响应Http请求，a为FluxMap的内部类MapSubscriber
+					 */
 					a.onNext(v);
 				}
 				finally {
@@ -385,6 +388,9 @@ final class FluxReceive extends Flux<Object> implements Subscription, Disposable
 				}
 			}
 			q.offer(msg);
+			/**
+			 * 响应Http请求
+			 */
 			drainReceiver();
 		}
 	}

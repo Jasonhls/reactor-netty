@@ -219,6 +219,7 @@ final class MonoSendMany<I, O> extends MonoSend<I, O> implements Scannable {
 						actualContext));
 				return;
 			}
+			//如果是响应Http请求，会走到这里
 			trySchedule();
 		}
 
@@ -317,6 +318,9 @@ final class MonoSendMany<I, O> extends MonoSend<I, O> implements Scannable {
 						}
 						pending++;
 						//"FutureReturnValueIgnored" this is deliberate
+						/**
+						 * 调用ctx.write方法，响应Http请求，这里的ctx是handler为ChannelOperationsHandler的DefaultChannelHandlerContext
+						 */
 						ctx.write(encodedMessage, this);
 
 						if (parent.predicate.test(sourceMessage) || !ctx.channel().isWritable() || readableBytes > ctx.channel().bytesBeforeUnwritable()) {
@@ -419,6 +423,9 @@ final class MonoSendMany<I, O> extends MonoSend<I, O> implements Scannable {
 
 			try {
 				if (eventLoop.inEventLoop()) {
+					/**
+					 * 响应Http请求
+					 */
 					run();
 					return;
 				}

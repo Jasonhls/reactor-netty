@@ -417,6 +417,11 @@ public abstract class HttpServer extends ServerTransport<HttpServer, HttpServerC
 	public final HttpServer handle(
 			BiFunction<? super HttpServerRequest, ? super HttpServerResponse, ? extends Publisher<Void>> handler) {
 		Objects.requireNonNull(handler, "handler");
+		/**
+		 * 核心逻辑：
+		 * NettyWebServer启动过程中调用它的startHttpServer方法，该方法会调用当前这个handle方法，传入的handler为ReactorHttpHandlerAdapter对象，
+		 * 将它封装到HttpServerHandle对象中，并通过下面的childObserve方法将HttpServerHandle作为一个节点传入到Netty的处理链中
+		 */
 		return childObserve(new HttpServerHandle(handler));
 	}
 
@@ -683,7 +688,11 @@ public abstract class HttpServer extends ServerTransport<HttpServer, HttpServerC
 	 */
 	public final HttpServer route(Consumer<? super HttpServerRoutes> routesBuilder) {
 		Objects.requireNonNull(routesBuilder, "routeBuilder");
+		//创建DefaultHttpServerRoutes对象
 		HttpServerRoutes routes = HttpServerRoutes.newRoutes();
+		/**
+		 * 传入参数routes，执行函数体routesBuilder中的方法
+		 */
 		routesBuilder.accept(routes);
 		return handle(routes);
 	}
@@ -919,6 +928,9 @@ public abstract class HttpServer extends ServerTransport<HttpServer, HttpServerC
 		final BiFunction<? super HttpServerRequest, ? super HttpServerResponse, ? extends Publisher<Void>> handler;
 
 		HttpServerHandle(BiFunction<? super HttpServerRequest, ? super HttpServerResponse, ? extends Publisher<Void>> handler) {
+			/**
+			 * 传入的handler为ReactorHttpHandlerAdapter
+			 */
 			this.handler = handler;
 		}
 
@@ -931,10 +943,18 @@ public abstract class HttpServer extends ServerTransport<HttpServer, HttpServerC
 						log.debug(format(connection.channel(), "Handler is being applied: {}"), handler);
 					}
 					HttpServerOperations ops = (HttpServerOperations) connection;
+					/**
+					 * 处理Http请求核心方法，即handler.apply方法，
+					 * handler为Spring中的ReactorHttpHandlerAdapter对象，该方法入参如下：
+					 * Mono<Void> apply(HttpServerRequest reactorRequest, HttpServerResponse reactorResponse)
+					 */
 					Mono<Void> mono = Mono.fromDirect(handler.apply(ops, ops));
 					if (ops.mapHandle != null) {
 						mono = ops.mapHandle.apply(mono, connection);
 					}
+					/**
+					 * 处理响应，mono为MonoSource对象
+					 */
 					mono.subscribe(ops.disposeSubscriber());
 				}
 				catch (Throwable t) {

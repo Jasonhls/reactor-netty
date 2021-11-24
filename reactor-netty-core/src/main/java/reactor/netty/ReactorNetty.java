@@ -651,6 +651,10 @@ public final class ReactorNetty {
 		@Override
 		public void onStateChange(Connection connection, State newState) {
 			for (ConnectionObserver observer : observers) {
+				/**
+				 * 处理Http请求的核心方法
+				 * observer为HttpServer的内部类HttpServerHandle
+				 */
 				observer.onStateChange(connection, newState);
 			}
 		}

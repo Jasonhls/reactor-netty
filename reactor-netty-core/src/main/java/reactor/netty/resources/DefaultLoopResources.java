@@ -146,6 +146,7 @@ final class DefaultLoopResources extends AtomicLong implements LoopResources {
 		if (useNative && LoopResources.hasNativeSupport()) {
 			return cacheNativeServerLoops();
 		}
+		//会创建NioEventLoopGroup对象
 		return cacheNioServerLoops();
 	}
 
@@ -202,6 +203,11 @@ final class DefaultLoopResources extends AtomicLong implements LoopResources {
 	EventLoopGroup cacheNioServerLoops() {
 		EventLoopGroup eventLoopGroup = serverLoops.get();
 		if (null == eventLoopGroup) {
+			/**
+			 * 执行NioEventLoopGroup的构造方法创建NioEventLoopGroup对象
+			 * NioEventLoopGroup的构造方法中，会初始化NioEventLoop数组对象，还会初始化一个EventExecutorChooser，即事件执行选择器，
+			 * 该选择器会从NioEventLoop数组对象中选择一个NioEventLoop来执行事件任务。
+			 */
 			EventLoopGroup newEventLoopGroup = new NioEventLoopGroup(workerCount,
 					threadFactory(this, "nio"));
 			if (!serverLoops.compareAndSet(null, newEventLoopGroup)) {

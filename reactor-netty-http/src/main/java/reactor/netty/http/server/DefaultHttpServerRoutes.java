@@ -84,6 +84,13 @@ final class DefaultHttpServerRoutes implements HttpServerRoutes {
 		return this;
 	}
 
+	/**
+	 * 添加get，post，put，delete，head，options等各种请求方式的接口逻辑体，采用的函数式编程
+	 * @param condition a predicate given each inbound request
+	 * @param handler the I/O handler to invoke on match
+	 *
+	 * @return
+	 */
 	@Override
 	public HttpServerRoutes route(Predicate<? super HttpServerRequest> condition,
 			BiFunction<? super HttpServerRequest, ? super HttpServerResponse, ? extends Publisher<Void>> handler) {
@@ -92,6 +99,9 @@ final class DefaultHttpServerRoutes implements HttpServerRoutes {
 
 		if (condition instanceof HttpPredicate) {
 			HttpPredicate predicate = (HttpPredicate) condition;
+			/**
+			 * 创建HttpRouteHandler对象，这里的handler为BiFunction类型，BiFunction<T, U, R>，其中T和U都是入参，R为出参
+			 */
 			HttpRouteHandler httpRouteHandler = new HttpRouteHandler(condition,
 					handler, predicate, predicate.uri, predicate.method);
 
@@ -130,6 +140,9 @@ final class DefaultHttpServerRoutes implements HttpServerRoutes {
 	@Override
 	public Publisher<Void> apply(HttpServerRequest request, HttpServerResponse response) {
 		// find I/0 handler to process this request
+		/**
+		 * 遍历所有的HttpRouteHandler
+		 */
 		final Iterator<HttpRouteHandler> iterator = handlers.iterator();
 		HttpRouteHandler cursor;
 
@@ -137,6 +150,9 @@ final class DefaultHttpServerRoutes implements HttpServerRoutes {
 			while (iterator.hasNext()) {
 				cursor = iterator.next();
 				if (cursor.test(request)) {
+					/**
+					 * 执行HttpRouteHandler的apply方法，执行请求逻辑
+					 */
 					return cursor.apply(request, response);
 				}
 			}
@@ -177,6 +193,9 @@ final class DefaultHttpServerRoutes implements HttpServerRoutes {
 		@Override
 		public Publisher<Void> apply(HttpServerRequest request,
 				HttpServerResponse response) {
+			/**
+			 * 调用HttpRouteHandler的apply方法，即lambda表达式逻辑
+			 */
 			return handler.apply(request.paramsResolver(resolver), response);
 		}
 

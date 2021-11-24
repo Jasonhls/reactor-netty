@@ -84,6 +84,9 @@ public abstract class ServerTransport<T extends ServerTransport<T, CONF>,
 		CONF config = configuration();
 		Objects.requireNonNull(config.bindAddress(), "bindAddress");
 
+		/**
+		 * 这里通过Mono的构造函数创建Mono对象，入参类型为Consumer(执行它的accept方法，才会真正去执行方法体)，把它赋值给MonoCreate对象的callback属性
+		 */
 		Mono<? extends DisposableServer> mono =  Mono.create(sink -> {
 			SocketAddress local = Objects.requireNonNull(config.bindAddress().get(), "Bind Address supplier returned null");
 			if (local instanceof InetSocketAddress) {
@@ -106,6 +109,9 @@ public abstract class ServerTransport<T extends ServerTransport<T, CONF>,
 
 			ConnectionObserver childObs =
 					new ChildObserver(config.defaultChildObserver().then(config.childObserver()));
+			/**
+			 * 执行config.childEventLoopGroup()方法中，会创建NioEventLoopGroup对象
+			 */
 			Acceptor acceptor = new Acceptor(config.childEventLoopGroup(), config.channelInitializer(childObs, null, true),
 					config.childOptions, config.childAttrs, isDomainSocket);
 			TransportConnector.bind(config, new AcceptorInitializer(acceptor), local, isDomainSocket)
@@ -142,6 +148,11 @@ public abstract class ServerTransport<T extends ServerTransport<T, CONF>,
 	public final DisposableServer bindNow(Duration timeout) {
 		Objects.requireNonNull(timeout, "timeout");
 		try {
+			/**
+			 * block方法是核心方法，bind()方法返回MonoCreate对象，执行父类Mono的block方法
+			 * bind()方法中创建MonoCreate对象的时候，会创建一个Consumer(包含方法体，只有在执行Consumer的accept方法，该方法体才会执行)
+			 * 并赋值给MonoCreate对象的属性callback
+			 */
 			return Objects.requireNonNull(bind().block(timeout), "aborted");
 		}
 		catch (IllegalStateException e) {
@@ -368,6 +379,12 @@ public abstract class ServerTransport<T extends ServerTransport<T, CONF>,
 			this.isDomainSocket = isDomainSocket;
 		}
 
+		/**
+		 * reactor-netty第一次处理请求的时候，ChannelPipeline管道里面有一个handler为ServerTransport的内部类Acceptor的ChannelHandlerContext对象，
+		 * 在执行通道ChannelHandlerContext链的channelRead方法的时候，就会执行下面的方法
+		 * @param ctx
+		 * @param msg
+		 */
 		@Override
 		public void channelRead(ChannelHandlerContext ctx, Object msg) {
 			final Channel child = (Channel) msg;
@@ -378,6 +395,9 @@ public abstract class ServerTransport<T extends ServerTransport<T, CONF>,
 			TransportConnector.setAttributes(child, childAttrs);
 
 			try {
+				/**
+				 * 核心逻辑，childGroup为MultithreadEventLoopGroup
+				 */
 				childGroup.register(child).addListener((ChannelFutureListener) future -> {
 					if (!future.isSuccess()) {
 						forceClose(child, future.cause());
@@ -475,6 +495,10 @@ public abstract class ServerTransport<T extends ServerTransport<T, CONF>,
 				}
 			}
 
+			/**
+			 * 处理Http请求的核心方法
+			 * childObs类型如果为ReactorNetty的内部类CompositeConnectionObserver
+			 */
 			childObs.onStateChange(connection, newState);
 		}
 	}

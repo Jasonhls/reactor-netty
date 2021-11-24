@@ -81,6 +81,11 @@ final class ChannelOperationsHandler extends ChannelInboundHandlerAdapter {
 		}
 	}
 
+	/**
+	 * 处理响应式中http请求的核心方法
+	 * @param ctx
+	 * @param msg
+	 */
 	@Override
 	@SuppressWarnings("FutureReturnValueIgnored")
 	final public void channelRead(ChannelHandlerContext ctx, Object msg) {
@@ -90,6 +95,10 @@ final class ChannelOperationsHandler extends ChannelInboundHandlerAdapter {
 		try {
 			ChannelOperations<?, ?> ops = ChannelOperations.get(ctx.channel());
 			if (ops != null) {
+				/**
+				 * 当前类继承了netty中的ChannelInboundHandlerAdapter类
+				 * 处理Http请求的核心方法，ops为HttpServerOperations对象
+				 */
 				ops.onInboundNext(ctx, msg);
 			}
 			else {

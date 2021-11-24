@@ -202,6 +202,7 @@ public abstract class ServerTransportConfig<CONF extends TransportConfig> extend
 	 * @return the configured {@link EventLoopGroup} used for the remote connection.
 	 */
 	final EventLoopGroup childEventLoopGroup() {
+		//loopResources()方法返回对象为TcpResources
 		return loopResources().onServer(isPreferNative());
 	}
 

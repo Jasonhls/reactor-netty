@@ -212,8 +212,14 @@ final class HttpTrafficHandler extends ChannelDuplexHandler
 					return;
 				}
 				ops.bind();
+				/**
+				 * listener为ServerTransport的内部类ChildObserver
+				 */
 				listener.onStateChange(ops, ConnectionObserver.State.CONFIGURED);
 
+				/**
+				 * 处理Http请求时的核心方法
+				 */
 				ctx.fireChannelRead(msg);
 				return;
 

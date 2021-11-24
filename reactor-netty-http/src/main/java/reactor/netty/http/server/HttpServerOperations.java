@@ -542,6 +542,9 @@ class HttpServerOperations extends HttpOperations<HttpServerRequest, HttpServerR
 	protected void onInboundNext(ChannelHandlerContext ctx, Object msg) {
 		if (msg instanceof HttpRequest) {
 			try {
+				/**
+				 * 处理Http请求的核心方法，listener()返回的为TcpServerBind的父类ServerTransport的内部类ChildObserver对象
+				 */
 				listener().onStateChange(this, HttpServerState.REQUEST_RECEIVED);
 			}
 			catch (Exception e) {
@@ -567,6 +570,9 @@ class HttpServerOperations extends HttpOperations<HttpServerRequest, HttpServerR
 		}
 		if (msg instanceof HttpContent) {
 			if (msg != LastHttpContent.EMPTY_LAST_CONTENT) {
+				/**
+				 * 响应Http请求的时候会走这里，super为ChannelOperations
+				 */
 				super.onInboundNext(ctx, msg);
 			}
 			if (msg instanceof LastHttpContent) {

@@ -255,6 +255,7 @@ public class TcpResources implements ConnectionProvider, LoopResources {
 
 	@Override
 	public EventLoopGroup onServer(boolean useNative) {
+		//defaultLoops为DefaultLoopResources对象
 		return defaultLoops.onServer(useNative);
 	}
 
